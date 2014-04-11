@@ -14,6 +14,12 @@ import org.jboss.jbpm.api.Jbpm6Client.TasksBy;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+/**
+ * Same as Jbpm6ClientImpl but returns parsed objects instead
+ * 
+ * @author mallen@redhat.com
+ *
+ */
 public class Jbpm6ClientObjects {
   private Jbpm6ClientImpl client;
 

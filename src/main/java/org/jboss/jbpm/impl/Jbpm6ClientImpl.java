@@ -1,16 +1,22 @@
 package org.jboss.jbpm.impl;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.jboss.jbpm.impl.Jbpm6ClientImpl.Http.*;
-import java.util.LinkedHashMap;
+import static org.jboss.jbpm.impl.Jbpm6ClientImpl.Http.GET;
+import static org.jboss.jbpm.impl.Jbpm6ClientImpl.Http.POST;
 import java.util.Map;
 import org.apache.http.HttpException;
 import org.jboss.jbpm.api.Jbpm6Client;
-
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
 
+/**
+ * Simple rest client to interact with JBPM6s REST API for process management
+ * 
+ * @author mallen@redhat.com
+ *
+ */
 public class Jbpm6ClientImpl implements Jbpm6Client{
 	private final String server;
 	private final String username;
@@ -35,7 +41,7 @@ public class Jbpm6ClientImpl implements Jbpm6Client{
 	public String startProcess(String deploymentId, String processId, String mapOfParams) throws HttpException{
 		return startProcessWithMap(deploymentId, processId, queryStringToMap(mapOfParams));
 	}
-	protected String startProcessWithMap(String deploymentId, String processId, Map<String,String> params) throws HttpException{
+	protected String startProcessWithMap(String deploymentId, String processId, Map<String,Object> params) throws HttpException{
 		Preconditions.checkArgument(deploymentId.split(":").length==3);
 		return send(POST, "rest/runtime/"+deploymentId+"/process/"+processId+"/start"+mapToQueryString(params));
 	}
@@ -49,7 +55,7 @@ public class Jbpm6ClientImpl implements Jbpm6Client{
 	public String completeTask(String id, String commaSeparatedListOfParams) throws HttpException{
 		return completeTaskWithMap(id, queryStringToMap(commaSeparatedListOfParams));
 	}
-	public String completeTaskWithMap(String id, Map<String, String> params) throws HttpException{
+	public String completeTaskWithMap(String id, Map<String, Object> params) throws HttpException{
 		return send(POST, "rest/task/"+id+"/complete"+mapToQueryString(params));
 	}
 	
@@ -86,17 +92,21 @@ public class Jbpm6ClientImpl implements Jbpm6Client{
 	/**
 	 * Convert a Map object into the jbpm6 queryString equivalent of a map of values but prepending the text "map_"
 	 */
-	private String mapToQueryString(Map<String,String> params){
+	private String mapToQueryString(Map<String,Object> params){
 		StringBuffer sb=new StringBuffer();
-		for(Map.Entry<String, String> e:params.entrySet()){
-			sb.append("&map_"+e.getKey()+"="+e.getValue());
+		for(Map.Entry<String, Object> e:params.entrySet()){
+			sb.append("&map_"+e.getKey()+"="+e.getValue().toString());
+      if (Integer.class.isAssignableFrom(e.getValue().getClass()))
+        sb.append("i"); // force the Integer data type once its been received by Jbpm server
+      if (Long.class.isAssignableFrom(e.getValue().getClass()))
+        sb.append("l"); // force the Long data type once its been received by Jbpm server
 		}
 		if (sb.length()>0)sb.replace(0,1,"?");
 		return sb.toString();
 	}
 
-	public static Map<String, String> queryStringToMap(String queryString) {
-	    Map<String, String> result = new LinkedHashMap<String, String>();
+	public static Map<String, Object> queryStringToMap(String queryString) {
+	    Map<String, Object> result = Maps.newLinkedHashMap();
 	    String[] pairs = queryString.split(",");
 	    for (String pair : pairs) {
 	    	String[] keyValue=pair.split("=");
