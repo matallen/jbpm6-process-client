@@ -1,6 +1,8 @@
 package org.jboss.jbpm;
 
-import org.jboss.jbpm.Jbpm6Client.TasksBy;
+import org.jboss.jbpm.api.Jbpm6Client.TasksBy;
+import org.jboss.jbpm.impl.Jbpm6ClientImpl;
+import org.jboss.jbpm.impl.Jbpm6ClientObjects;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
